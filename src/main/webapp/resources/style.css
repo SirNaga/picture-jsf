@@ -1,0 +1,16 @@
+/* styles.css */
+.navbar-nav .nav-link {
+    font-size: 18px; /* Adjust the font size as needed */
+}
+
+/* Additional styles for form elements */
+.form-group label,
+.form-control {
+    font-size: 16px; /* Adjust the font size for labels and input fields */
+}
+
+/* Additional styles for post areas */
+.card-title,
+.card-text {
+    font-size: 16px; /* Adjust the font size for post titles and descriptions */
+}

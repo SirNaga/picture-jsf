@@ -1,0 +1,156 @@
+<!DOCTYPE HTML>
+<HTML lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+    <style>
+        .dotted-link {
+            text-decoration: none;
+            color: #007bff; /* Blue color */
+            border-bottom: 1px dotted #007bff; /* Dotted underline */
+            cursor: pointer;
+        }
+
+        .dotted-link:hover {
+            color: #0056b3; /* Darker blue color on hover */
+            border-bottom-color: #0056b3; /* Darker blue color for the dotted underline on hover */
+        }
+
+    </style>
+</h:head>
+<h:body>
+    <ui:include src="/includes/header.xhtml"/>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card" id="createPostCard" style="display: none;">
+                    <div class="card-header bg-primary text-white text-center">
+                        Create a New Post
+                    </div>
+                    <div class="card-body">
+                        <h:form enctype="multipart/form-data">
+                            <div class="form-group">
+                                <h:outputLabel for="postTitle">Post Title</h:outputLabel>
+                                <h:inputText id="postTitle" value="#{postBean.post.title}"
+                                             placeholder="Enter post title"
+                                             class="form-control"/>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel for="postDescription">Post Description</h:outputLabel>
+                                <h:inputTextarea id="postDescription" value="#{postBean.post.description}"
+                                                 placeholder="Write your post here" class="form-control"/>
+                            </div>
+                            <div class="form-group">
+                                <h:outputLabel for="username">Your Username</h:outputLabel>
+                                <h:inputText id="username" value="#{postBean.post.username}" placeholder="Your username"
+                                             class="form-control"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="file">Upload Image</label>
+                                <input type="file" id="file" name="file" accept="image/*" class="form-control"/>
+                            </div>
+                            <img id="previewImage" src="#" alt="Selected Image" style="max-width: 300px; max-height: 300px; display: none;" />
+
+                            <h:commandButton action="#{postBean.createPost()}" value="Post"
+                                             class="btn btn-primary btn-block"/>
+                        </h:form>
+                    </div>
+                </div>
+                <button id="toggleButton" class="btn btn-success btn-block mt-3">Show Create Post</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title text-center mb-4">Recent Posts</h2>
+                        <ui:repeat value="#{postBean.getAllPost()}" var="post">
+                            <div class="card mb-3">
+                                <div class="position-relative">
+                                    <div class="card-header d-flex justify-content-between">
+                                        <h5 class="card-title">#{post.title}</h5>
+                                    </div>
+                                    <div class="card-body  position-relative">
+                                        <p class="card-text">#{post.description}</p>
+                                        <p class="card-text">By: #{post.username}</p>
+                                        <h:graphicImage class="card-text"  style="width: 100%; height: auto;" value="http://localhost:9090/file/download/#{post.imageId}" alt="#{post.imageId}" />
+                                        <section id="comments">
+                                            <h6 class="p-2">Comments</h6>
+                                            <ul id="commentList"  style="list-style-type: none; padding-left: 0;">
+                                                <li style="border: 1px dotted #ccc; padding: 5px; margin-bottom: 5px;">#{post.comments[0]}</li>
+                                                <ui:repeat value="#{post.comments}" var="comment" start="1">
+                                                    <li class="additionalComment" style="border: 1px dotted #ccc; padding: 5px; margin-bottom: 5px; display: none;">#{comment}</li>
+                                                </ui:repeat>
+                                            </ul>
+
+                                            <a id="toggleComments" class="dotted-link p-5 text-right" >Show More Comments</a>
+                                        <br/>
+
+                                            <h6>Add a Comment</h6>
+                                            <h:form>
+                                                <h:inputTextarea rows="2" cols="50" id="commentText"
+                                                                 value="#{postBean.comment}"/>
+                                                <br/>
+                                                <h:commandButton value="Add Comment"
+                                                                 action="#{postBean.updatePostComments(post)}"/>
+                                            </h:form>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </ui:repeat>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        document.getElementById('toggleComments').addEventListener('click', function() {
+            var additionalComments = document.getElementsByClassName('additionalComment');
+            for (let i = 0; i &lt; additionalComments.length; i++) {
+                if (additionalComments[i].style.display === 'none') {
+                    additionalComments[i].style.display = 'block';
+                    this.textContent = 'Hide Comments';
+                } else {
+                    additionalComments[i].style.display = 'none';
+                    this.textContent = 'Show More Comments';
+                }
+            }
+        });
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            const createPostCard = document.getElementById('createPostCard');
+            if (createPostCard.style.display === 'none') {
+                createPostCard.style.display = 'block';
+                this.textContent = 'Hide Create Post'; // Change button text to 'Hide Create Post'
+            } else {
+                createPostCard.style.display = 'none';
+                this.textContent = 'Show Create Post'; // Change button text to 'Show Create Post'
+            }
+        });
+
+        // Function to handle file selection event
+        document.getElementById('file').addEventListener('change', function(event) {
+            const file = event.target.files[0]; // Get the selected file
+            const reader = new FileReader(); // Create a FileReader object
+
+            // When the file is loaded, set the src attribute of the &lt; img &gt; tag to the data URL
+            reader.onload = function(e) {
+                const img = document.getElementById('previewImage');
+                img.src = e.target.result;
+                img.style.display = 'block'; // Show the image
+            };
+
+            // Read the selected file as a data URL
+            reader.readAsDataURL(file);
+        });
+    </script>
+</h:body>
+</HTML>
